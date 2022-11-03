@@ -2,6 +2,26 @@
 MainWidget:
 
 <MainWidget>:
+    canvas.before:
+        Rectangle:
+            size: self.size
+            source: 'images/Tpn.jpg'
     menu_widget: menu_widget
+    Label:
+        text: root.score_counter
+        font_size: dp(30)
+        size_hint: .2, .2
+        pos_hint: {"right": 1, "top": 1}
+    Label:
+        text: root.high_score_counter
+        font_size: dp(25)
+        size_hint: .2, .2
+        pos_hint: {"right": 1, "top": .90}
+    Label:
+        text: root.lives_counter
+        font_size: dp(25)
+        size_hint: .2, .2
+        pos_hint: {"right": 1, "top": .80}
+
     MenuWidget:
         id: menu_widget

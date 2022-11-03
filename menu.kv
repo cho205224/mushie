@@ -5,11 +5,13 @@
         Rectangle:
             size: self.size
     Label:
-        text: "Title"
-        pos_hint: {"center_x": .5, "center_y": .6}
-
+        font_size: dp(50)
+        text: root.parent.title
+        pos_hint: {"center_x": .5, "center_y": .7}
     Button:
-        text: "Butt"
-        pos_hint: {"center_x": .5, "center_y": .4}
+        font_size: dp(25)
+        text: root.parent.sb
+        pos_hint: {"center_x": .5, "center_y": .3}
         size_hint: .2, .1
         on_press: root.parent.start_button()
+        background_color: .4, 1, 0, .30
