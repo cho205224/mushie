@@ -8,10 +8,10 @@ def on_touch_down(self, touch):
     return super(RelativeLayout, self).on_touch_down(touch)
 
 
-def on_touch_move(self, touch):
+def on_touch_move(self, touch):  # use for power ups
     # self.finger.pos = touch.pos
     pass
 
 
-def on_touch_up(self, touch):
+def on_touch_up(self, touch):  # use for power ups
     pass

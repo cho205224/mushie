@@ -1,3 +1,4 @@
+from math import floor
 from kivy.config import Config
 from kivy.lang import Builder
 from kivy.metrics import dp
@@ -11,7 +12,7 @@ from kivy.app import App
 from kivy.graphics import Color, Ellipse, Rectangle
 from kivy.properties import Clock, ObjectProperty, StringProperty
 from kivy.uix.relativelayout import RelativeLayout
-from random import choice
+from random import choice, randint
 
 Builder.load_file("menu.kv")
 
@@ -21,8 +22,8 @@ class MainWidget(RelativeLayout):
 
     menu_widget = ObjectProperty()
 
-    finger_size = 40
-    mushie_size = 40
+    finger_size = 20
+    mushie_size = 30
 
     speed = 1.5
     speed_x, speed_y = 0, 0
@@ -31,6 +32,8 @@ class MainWidget(RelativeLayout):
     score = 0
     high_score = 0
     calc_score = 0
+    speed_increase_counter = 0
+    score_multi = 1
 
     game_over = False
     game_start = False
@@ -40,6 +43,8 @@ class MainWidget(RelativeLayout):
     lives_counter = StringProperty("Lives: " + str(lives))
     score_counter = StringProperty("Score: " + str(score))
     high_score_counter = StringProperty("High Score: " + str(high_score))
+    game_over_score = StringProperty("")
+    score_multiplier = StringProperty("Multiplier: " + str(floor(score_multi)) + "X")
 
     def __init__(self, **kwargs):
         super(MainWidget, self).__init__(**kwargs)
@@ -122,12 +127,26 @@ class MainWidget(RelativeLayout):
             self.commit_score()
 
         if not self.game_over:
+            self.speed_increase_counter += 1
+            if self.speed_increase_counter == 120:
+                if self.speed_y > 0:
+                    self.speed_y += .02
+                elif self.speed_y < 0:
+                    self.speed_y -= .02
+                if self.speed_x > 0:
+                    self.speed_x += .02
+                elif self.speed_x < 0:
+                    self.speed_x -= .02
+                self.score_multi += .1
+                self.speed_increase_counter = 0
             self.mushie.pos = (x, y)  # update mushie pos
+            self.score_multiplier = "Multiplier: " + str(floor(self.score_multi)) + "X"
 
         if self.lives == 0 and not self.game_over:  # Game over state/reset
             self.game_over = True
             self.title = "GAME OVER"
             self.sb = "Restart?"
+            self.game_over_score = "Score: " + str(self.score)
             self.menu_widget.opacity = 1
             self.reset()
 
@@ -150,14 +169,13 @@ class MainWidget(RelativeLayout):
         self.game_start = False
         self.calc_score = 0
         self.score = 0
+        self.speed_increase_counter = 0
+        self.score_multi = 1
         self.score_counter = "Score: " + str(self.score)
         if not self.game_start:
             self.speed_x = self.speed * self.gen_start_direction()
             self.speed_y = self.speed * self.gen_start_direction()
         self.game_over = False
-
-    def gen_start_direction(self):  # moves x,y to one of four rand diagonals
-        return choice([-1, 1])
 
     def life_decrement(self):  # takes a life and update counter
         self.lives -= 1
@@ -168,12 +186,61 @@ class MainWidget(RelativeLayout):
             self.calc_score += 1
 
     def commit_score(self):  # calc score committed upon contact with finger
-        self.score += self.calc_score
+        self.score += floor(self.calc_score * self.score_multi)
         self.calc_score = 0
         self.score_counter = "Score: " + str(self.score)
+        print("speed: " + str(self.speed_y))
+        print("score mult: " + str(self.score_multi))
         if self.score > self.high_score:
             self.high_score = self.score
             self.high_score_counter = "High Score: " + str(self.high_score)
+
+    def gen_start_direction(self):  # moves x,y to one of four rand diagonals
+        return choice([-1, 1])
+
+    def gen_coordinates(self):
+        return randint(0, self.width), randint(0, self.height)
+
+    def hearts(self):
+        with self.canvas:
+            Color(1, 0, 0)
+            heart_pickup = Rectangle(pos=(self.gen_coordinates()), size=(dp(self.mushie_size / 2), dp(self.mushie_size / 2)))
+
+        heart_pickup_x = heart_pickup.pos[0]
+        heart_pickup_y = heart_pickup.pos[1]
+        x, y = self.mushie.pos
+
+        # bottom heart
+        if (y + self.mushie_size > heart_pickup_y) \
+                and (y + self.mushie_size < heart_pickup_y + self.finger_size) \
+                and (x + self.mushie_size > heart_pickup_x + 5) \
+                and (x < heart_pickup_x + self.finger_size - 5):
+            self.lives += 1
+            self.lives_counter = "Lives: " + str(self.lives)
+
+        # top heart
+        if (y < heart_pickup_y + self.finger_size) \
+                and (y + self.mushie_size > heart_pickup_y) \
+                and (x + self.mushie_size > heart_pickup_x + 5) \
+                and (x < heart_pickup_x + self.finger_size - 5):
+            self.lives += 1
+            self.lives_counter = "Lives: " + str(self.lives)
+
+        # left heart
+        if (x + self.mushie_size > heart_pickup_x) \
+                and (x + self.mushie_size < heart_pickup_x + self.finger_size) \
+                and (y + self.mushie_size > heart_pickup_y) \
+                and (y < heart_pickup_y + self.finger_size):
+            self.lives += 1
+            self.lives_counter = "Lives: " + str(self.lives)
+
+        # right heart
+        if (x < heart_pickup_x + self.finger_size) \
+                and (x + self.mushie_size > heart_pickup_x) \
+                and (y + self.mushie_size > heart_pickup_y) \
+                and (y < heart_pickup_y + self.finger_size):
+            self.lives += 1
+            self.lives_counter = "Lives: " + str(self.lives)
 
 
 class MushieApp(App):
