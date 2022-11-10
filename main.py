@@ -1,4 +1,5 @@
 from math import floor
+from high_score import get_high_score, write_high_score
 from kivy.config import Config
 from kivy.lang import Builder
 from kivy.metrics import dp
@@ -25,12 +26,12 @@ class MainWidget(RelativeLayout):
     finger_size = 20
     mushie_size = 30
 
-    speed = 1.5
+    speed = 1
     speed_x, speed_y = 0, 0
 
     lives = 3
     score = 0
-    high_score = 0
+    high_score = get_high_score()
     calc_score = 0
     speed_increase_counter = 0
     score_multi = 1
@@ -52,12 +53,13 @@ class MainWidget(RelativeLayout):
         if self.is_desktop():
             Clock.schedule_interval(self.update, 1.0 / 60.0)  # 60fps, ideally utilize dt later
             Clock.schedule_interval(self.calculate_score, 1)
+
         with self.canvas:
             # generate mushie (add sprite later instead of ellipse)
             self.mushie = Ellipse(pos=self.center, size=(dp(self.mushie_size), dp(self.mushie_size)))
 
             # generate finger (add sprite later instead of rect)
-            Color(0, 1, 0)
+            Color(0, 1, 0, .25)
             self.finger = Rectangle(pos=(0, 0), size=(dp(self.finger_size), dp(self.finger_size)))
 
     def on_size(self, *args):  # center mushie on screen
@@ -193,6 +195,7 @@ class MainWidget(RelativeLayout):
         print("score mult: " + str(self.score_multi))
         if self.score > self.high_score:
             self.high_score = self.score
+            write_high_score(str(self.high_score))
             self.high_score_counter = "High Score: " + str(self.high_score)
 
     def gen_start_direction(self):  # moves x,y to one of four rand diagonals
@@ -204,7 +207,8 @@ class MainWidget(RelativeLayout):
     def hearts(self):
         with self.canvas:
             Color(1, 0, 0)
-            heart_pickup = Rectangle(pos=(self.gen_coordinates()), size=(dp(self.mushie_size / 2), dp(self.mushie_size / 2)))
+            heart_pickup = Rectangle(pos=(self.gen_coordinates()),
+                                     size=(dp(self.mushie_size / 2), dp(self.mushie_size / 2)))
 
         heart_pickup_x = heart_pickup.pos[0]
         heart_pickup_y = heart_pickup.pos[1]
